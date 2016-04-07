@@ -47,7 +47,7 @@ function init() {
     // For more options see: https://developers.google.com/maps/documentation/javascript/reference#MapOptions
     var mapOptions = {
         // How zoomed in you want the map to start at (always required)
-        zoom: 15,
+        zoom: 16,
 
         // The latitude and longitude to center the map (always required)
         center: new google.maps.LatLng(40.6700, -73.9400), // New York
@@ -185,3 +185,93 @@ function init() {
         icon: image
     });
 }
+
+// Google maps
+
+var currentLocation = "Dublin, IE";
+var currentLocation2 = "Itapipoca, BR";
+var currentLocation3 = "Cruz das almas, BR";
+var currentLocation4 = "Itaberaba, BR";
+var currentLocation5 = "Rolante, BR";
+
+
+
+var map;
+
+function initializeMap() {
+
+  var locations;
+
+  var mapOptions = {
+    disableDefaultUI: true
+  };
+
+  map = new google.maps.Map(document.querySelector('#map'), mapOptions);
+
+  function locationFinder() {
+    var locations = [];
+
+    locations.push(currentLocation);
+    locations.push(currentLocation2);
+    locations.push(currentLocation3);
+    locations.push(currentLocation4);
+    locations.push(currentLocation5);
+
+    return locations;
+  }
+
+  function createMapMarker(placeData) {
+    var lat = placeData.geometry.location.lat();
+    var lon = placeData.geometry.location.lng();
+    var name = placeData.formatted_address;
+    var bounds = window.mapBounds;
+
+    var marker = new google.maps.Marker({
+      map: map,
+      position: placeData.geometry.location,
+      title: name
+    });
+
+    var infoWindow = new google.maps.InfoWindow({
+      content: name
+    });
+
+    google.maps.event.addListener(marker, 'click', function() {
+      infoWindow.open(map,marker);
+      map.setZoom(8);
+      map.setCenter(marker.getPosition());
+    });
+
+    bounds.extend(new google.maps.LatLng(lat, lon));
+    map.fitBounds(bounds);
+    map.setCenter(bounds.getCenter());
+  }
+
+  function callback(results, status) {
+    if (status == google.maps.places.PlacesServiceStatus.OK) {
+      createMapMarker(results[0]);
+    }
+  }
+
+  function pinPoster(locations) {
+    var service = new google.maps.places.PlacesService(map);
+
+    for (var place in locations) {
+      var request = {
+        query: locations[place]
+      };
+
+      service.textSearch(request, callback);
+    }
+  }
+
+  window.mapBounds = new google.maps.LatLngBounds();
+  locations = locationFinder();
+  pinPoster(locations);
+
+}
+window.addEventListener('load', initializeMap);
+
+window.addEventListener('resize', function(e) {
+  map.fitBounds(mapBounds);
+});
